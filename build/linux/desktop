@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=My Product
+Comment=A fish-clock application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/fish-clock.exe %u
+Terminal=false
+Type=Application
+Icon=fish-clock.exe
+Categories=Utility;
+StartupWMClass=fish-clock.exe
+
+ 

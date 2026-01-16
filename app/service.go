@@ -1,11 +1,11 @@
-package main
+package app
 
 import (
 	"fish-clock/internal/festival"
 )
 
-type FestivalService struct {
-}
+// FestivalService 节日服务
+type FestivalService struct{}
 
 // FestivalInfo 节日信息结构（返回给前端）
 type FestivalInfo struct {

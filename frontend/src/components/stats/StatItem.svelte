@@ -23,6 +23,9 @@
         font-size: 18px;
         font-weight: bold;
         color: #333;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        /* min-width: 60px; */
+        display: inline-block;
     }
     .unit {
         font-size: 12px;

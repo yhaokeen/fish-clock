@@ -1,13 +1,12 @@
 <script lang="ts">
-    import {onMount, onDestroy} from 'svelte';
     import StatItem from './StatItem.svelte';
 
-    export let monthlySalary: number = 10000;
-    export let workStartHour: number = 9;
-    export let workEndHour: number = 18;
+    // Svelte 5: Props 使用 $props() 解构
+    let { monthlySalary = 10000, workStartHour = 9, workEndHour = 18 } = $props();
 
-    let earnings = "0.000"
-    let timer: number;
+    // Svelte 5: 使用 $state 声明响应式状态
+    let earnings = $state("0.000");
+    let timer = $state<number | undefined>(undefined);
 
     function calculate() {
         const now = new Date();
@@ -26,15 +25,16 @@
         }
     }
 
-    onMount(() => {
+    // Svelte 5: 使用 $effect 替代 onMount 和 onDestroy
+    $effect(() => {
         calculate();
         timer = window.setInterval(calculate, 100);
-    });
-
-    onDestroy(() => {
-        if (timer) {
-            window.clearInterval(timer);
-        }
+        
+        return () => {
+            if (timer) {
+                window.clearInterval(timer);
+            }
+        };
     });
 </script>
 

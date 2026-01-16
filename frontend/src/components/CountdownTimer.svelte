@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-
-    // Props - 从父组件接收的参数
-  export let offWorkHour: number = 18;
-  export let offWorkMinute: number = 0;
-  export let title: string = "下班还有";
-  // 组件内部状态
-  let countdown = "00:00:00";
-  let timer: number;
+  // Svelte 5: Props 使用 $props() 解构
+  let { offWorkHour = 18, offWorkMinute = 0, title = "下班还有" } = $props();
+  
+  // Svelte 5: 使用 $state 声明响应式状态
+  let countdown = $state("00:00:00");
+  let timer = $state<number | undefined>(undefined);
 
   function updateCountdown() {
     const now = new Date();
@@ -28,15 +25,17 @@
     countdown = [hours, minutes, seconds].map(num => num.toString().padStart(2, '0')).join(':')
   }
 
-  onMount(() => {
+  // Svelte 5: 使用 $effect 替代 onMount 和 onDestroy
+  $effect(() => {
     updateCountdown();
     timer = window.setInterval(updateCountdown, 1000);
-  });
-
-  onDestroy(() => {
-    if (timer) {
-      window.clearInterval(timer);
-    }
+    
+    // 返回清理函数（相当于 onDestroy）
+    return () => {
+      if (timer) {
+        window.clearInterval(timer);
+      }
+    };
   });
 </script>
 

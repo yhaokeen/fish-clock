@@ -1,9 +1,11 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
     import StatItem from './StatItem.svelte';
 
-    export let payday: number = 15;
-    let days = 0;
+    // Svelte 5: Props 使用 $props() 解构
+    let { payday = 15 } = $props();
+    
+    // Svelte 5: 使用 $state 声明响应式状态
+    let days = $state(0);
 
     function calculate() {
         const now = new Date();
@@ -17,9 +19,10 @@
         }
     }
 
-    onMount(() => {
+    // Svelte 5: 使用 $effect 替代 onMount
+    $effect(() => {
         calculate();
-        const timer = window.setInterval(calculate, 1000 * 60 * 10)  // 10min更新一次就够了
+        const timer = window.setInterval(calculate, 1000 * 60 * 10);  // 10min更新一次就够了
         return () => window.clearInterval(timer);
     });
 </script>

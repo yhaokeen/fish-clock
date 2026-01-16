@@ -1,8 +1,9 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
     import StatItem from './StatItem.svelte';
 
-    let days = 0;
+    // Svelte 5: 使用 $state 声明响应式状态
+    let days = $state(0);
+    
     function calculate() {
         const dayOfWeek = new Date().getDay();
         if (dayOfWeek === 0) days = 5;
@@ -10,11 +11,12 @@
         else days = 5 - dayOfWeek;
     }
 
-    onMount(() => {
+    // Svelte 5: 使用 $effect 替代 onMount
+    $effect(() => {
         calculate();
         const timer = window.setInterval(calculate, 1000 * 60 * 10);
         return () => window.clearInterval(timer);
-    })
+    });
 </script>
 
 <StatItem label="周五" value={days} unit="天" />

@@ -16,6 +16,8 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tsconfig/svelte": "^5.0.2",
+    "flowbite": "^4.0.1",
+    "flowbite-svelte": "^1.31.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tslib": "^2.6.2",

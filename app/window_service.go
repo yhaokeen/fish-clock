@@ -12,7 +12,7 @@ func NewWindowService(app *App) *WindowService {
 
 // CloseCurrentWindow 关闭当前窗口
 func (s *WindowService) CloseCurrentWindow() {
-	if s.app.settingsWindow != nil {
-		s.app.settingsWindow.Close()
+	if s.app.configWindow != nil {
+		s.app.configWindow.Close()
 	}
 }

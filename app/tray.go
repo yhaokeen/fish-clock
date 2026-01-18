@@ -12,7 +12,7 @@ func (a *App) SetupSystemTray() {
 	})
 
 	trayMenu.Add("设置").OnClick(func(ctx *application.Context) {
-		a.OpenSettingsWindow()
+		a.OpenConfigWindow()
 	})
 
 	trayMenu.AddSeparator()

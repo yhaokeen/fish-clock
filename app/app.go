@@ -10,19 +10,19 @@ import (
 type App struct {
 	*application.App
 	ConfigService *ConfigService
-	settingsWindow *application.WebviewWindow
+	configWindow  *application.WebviewWindow
 }
 
 // New 创建新的应用实例
 func New(assets embed.FS) *App {
 	configService := NewConfigService()
-	
+
 	appInstance := &App{
 		ConfigService: configService,
 	}
-	
+
 	windowService := NewWindowService(appInstance)
-	
+
 	app := application.New(application.Options{
 		Name: "fish-clock",
 		Services: []application.Service{

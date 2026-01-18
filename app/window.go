@@ -28,30 +28,39 @@ func (a *App) CreateMainWindow() {
 }
 
 // OpenSettingsWindow 打开设置窗口
-func (a *App) OpenSettingsWindow() {
+func (a *App) OpenConfigWindow() {
 	// 如果设置窗口已存在且有效，显示它
-	if a.settingsWindow != nil {
-		a.settingsWindow.Show()
-		a.settingsWindow.Focus()
+	if a.configWindow != nil {
+		a.configWindow.Show()
+		a.configWindow.Focus()
 		return
 	}
 
-	// 创建新的设置窗口
-	a.settingsWindow = a.Window.NewWithOptions(application.WebviewWindowOptions{
+	a.createConfigWindow()
+
+	// 监听窗口关闭事件，清除引用
+	a.configWindow.OnWindowEvent(events.Common.WindowClosing, func(event *application.WindowEvent) {
+		a.configWindow = nil
+	})
+}
+
+func (a *App) createConfigWindow() {
+	a.configWindow = a.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "设置",
 		Width:            500,
 		Height:           450,
-		DisableResize:    false,
-		BackgroundType:   application.BackgroundTypeSolid,
-		BackgroundColour: application.NewRGB(240, 240, 240),
+		Frameless:        true,
+		DisableResize:    true,
+		BackgroundType:   application.BackgroundTypeTranslucent,
+		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
 		URL:              "/#/settings",
 		Mac: application.MacWindow{
-			Backdrop: application.MacBackdropNormal,
+			InvisibleTitleBarHeight: 50,
+			Backdrop:                application.MacBackdropTranslucent,
+			TitleBar:                application.MacTitleBarHiddenInset,
 		},
-	})
-
-	// 监听窗口关闭事件，清除引用
-	a.settingsWindow.OnWindowEvent(events.Common.WindowClosing, func(event *application.WindowEvent) {
-		a.settingsWindow = nil
+		Windows: application.WindowsWindow{
+			BackdropType: application.Acrylic,
+		},
 	})
 }

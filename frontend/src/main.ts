@@ -1,4 +1,5 @@
 import { mount } from 'svelte'
+import './app.css'  // 导入 Tailwind CSS
 import App from './App.svelte'
 import Settings from './Settings.svelte'
 

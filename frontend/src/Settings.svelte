@@ -134,122 +134,99 @@
   }
 </script>
 
-<div class="settings-container">
-  <div class="settings-content" style="--wails-draggable:drag;">
-    <div class="header" style="--wails-draggable:drag;">
-      <h2 class="title" style="--wails-draggable:drag;">设置</h2>
+<div class="settings-content" style="--wails-draggable:drag;">
+  <h2 class="title">设置</h2>
+
+  {#if !isReady}
+    <div class="loading">加载中...</div>
+  {:else if $configStore}
+    <div class="form-container">
+      <div class="form-row">
+        <Label class="form-label">工作时间</Label>
+        <Timepicker
+          type="range"
+          onselect={handleRangeChange}
+          value={selectedTimeRange.time}
+          endValue={selectedTimeRange.endTime}
+          divClass="shadow-none timepicker-no-extra-icon"
+        />
+      </div>
+
+      <div class="form-row">
+        <Label for="payday" class="form-label">发薪日</Label>
+        <div class="input-with-unit">
+          <Input
+            id="payday"
+            type="number"
+            bind:value={payday}
+            oninput={handleConfigChange}
+            min="1"
+            max="31"
+            size="sm"
+            class="flex-1"
+          />
+          <span class="unit">号</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <Label for="monthly-salary" class="form-label">月薪</Label>
+        <div class="input-with-unit">
+          <Input
+            id="monthly-salary"
+            type="number"
+            bind:value={monthlySalary}
+            oninput={handleConfigChange}
+            min="0"
+            step="100"
+            size="sm"
+            class="flex-1"
+          />
+          <span class="unit">¥</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <Label for="opacity-slider" class="form-label">窗口透明度</Label>
+        <div class="opacity-control">
+          <span class="opacity-value">{opacityPercent}%</span>
+          <Range
+            id="opacity-slider"
+            bind:value={opacityPercent}
+            oninput={handleOpacityChange}
+            min="0"
+            max="100"
+            size="sm"
+            class="flex-1"
+          />
+        </div>
+      </div>
     </div>
 
-    {#if !isReady}
-      <div class="loading" style="--wails-draggable:no-drag;">加载中...</div>
-    {:else if $configStore}
-      <div class="form-container" style="--wails-draggable:no-drag;">
-        <div class="form-row">
-          <Label class="form-label">工作时间</Label>
-          <!-- <div class="time-range"> -->
-            <Timepicker
-              type="range"
-              onselect={handleRangeChange}
-              value={selectedTimeRange.time}
-              endValue={selectedTimeRange.endTime}
-              divClass="shadow-none"
-            />
-          <!-- </div> -->
-        </div>
-
-        <div class="form-row">
-          <Label for="payday" class="form-label">发薪日</Label>
-          <div class="input-with-unit">
-            <Input
-              id="payday"
-              type="number"
-              bind:value={payday}
-              oninput={handleConfigChange}
-              min="1"
-              max="31"
-              size="sm"
-              class="flex-1"
-            />
-            <span class="unit">号</span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <Label for="monthly-salary" class="form-label">月薪</Label>
-          <div class="input-with-unit">
-            <Input
-              id="monthly-salary"
-              type="number"
-              bind:value={monthlySalary}
-              oninput={handleConfigChange}
-              min="0"
-              step="100"
-              size="sm"
-              class="flex-1"
-            />
-            <span class="unit">¥</span>
-          </div>
-        </div>
-
-        <div class="form-row opacity-row">
-          <Label for="opacity-slider" class="form-label">窗口透明度</Label>
-          <div class="opacity-control">
-            <span class="opacity-value">{opacityPercent}%</span>
-            <Range
-              id="opacity-slider"
-              bind:value={opacityPercent}
-              oninput={handleOpacityChange}
-              min="0"
-              max="100"
-              size="sm"
-              class="flex-1"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="button-group" style="--wails-draggable:no-drag;">
-        <Button color="light" onclick={handleCancel} class="flex-1">取消</Button>
-        <Button color="blue" onclick={handleSave} class="flex-1">保存</Button>
-      </div>
-    {:else}
-      <div class="error" style="--wails-draggable:no-drag;">无法加载配置</div>
-    {/if}
-  </div>
+    <div class="button-group">
+      <Button color="light" onclick={handleCancel} class="flex-1">取消</Button>
+      <Button color="blue" onclick={handleSave} class="flex-1">保存</Button>
+    </div>
+  {:else}
+    <div class="error">无法加载配置</div>
+  {/if}
 </div>
 
 <style>
-  .settings-container {
+  .settings-content {
     width: 100vw;
     height: 100vh;
-    display: flex;
-    background: transparent;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  .settings-content {
-    width: 100%;
-    height: 100%;
     background: white;
     border-radius: 16px;
-    padding: 28px 32px 32px;
+    padding: 20px 20px 20px;
     box-sizing: border-box;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
   }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 28px;
-  }
-
   .title {
-    margin: 0;
+    margin: 0 0 28px 0;
     font-size: 20px;
     font-weight: 600;
     color: #1a1a1a;
@@ -298,8 +275,7 @@
   .form-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
   }
 
   .form-row :global(.form-label) {
@@ -311,22 +287,16 @@
     margin-bottom: 0;
   }
 
-  .time-range {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-  }
-
-  /* .time-range :global(input) {
-    text-align: center;
-  } */
-
   .input-with-unit {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1;
+  }
+
+  /* 输入框设置固定宽度 */
+  .input-with-unit :global(.flex-1) {
+    flex: none;
+    width: 120px;
   }
 
   .unit {
@@ -336,15 +306,16 @@
     font-weight: 500;
   }
 
-  .opacity-row {
-    padding-top: 8px;
-  }
-
   .opacity-control {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1;
+  }
+
+  /* Range 滑块设置固定宽度 */
+  .opacity-control :global(.flex-1) {
+    flex: none;
+    width: 200px;
   }
 
   .opacity-value {
@@ -366,5 +337,11 @@
   /* 自定义 Flowbite 组件样式 */
   :global(.flex-1) {
     flex: 1;
+  }
+
+  /* 隐藏 Timepicker range 模式中 Flowbite 添加的额外时钟按钮 */
+  /* 浏览器原生 input[type="time"] 已经有时钟图标了 */
+  .form-row :global(button[aria-label*="time picker"]) {
+    display: none !important;
   }
 </style>

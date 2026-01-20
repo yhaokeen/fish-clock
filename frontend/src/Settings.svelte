@@ -3,6 +3,7 @@
   import type { Config } from "../bindings/fish-clock/app/models";
   import { configStore } from "./stores/config";
   import { Button, Input, Label, Range, Timepicker } from 'flowbite-svelte';
+  import { ClockSolid, CalendarMonthSolid, DollarOutline, AdjustmentsHorizontalOutline } from 'flowbite-svelte-icons';
 
   // Svelte 5: 使用 $state 声明响应式状态
   let originalConfig = $state<Config | null>(null);
@@ -134,27 +135,36 @@
   }
 </script>
 
-<div class="settings-content" style="--wails-draggable:drag;">
-  <h2 class="title">设置</h2>
+<div class="w-screen h-screen bg-gray-50 rounded-2xl p-6 flex flex-col shadow-xl" style="--wails-draggable:drag;">
+  <div class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">设置</h2>
+    <div class="title-divider"></div>
+  </div>
 
   {#if !isReady}
-    <div class="loading">加载中...</div>
+    <div class="text-center py-16 text-sm text-gray-400">加载中...</div>
   {:else if $configStore}
-    <div class="form-container">
-      <div class="form-row">
-        <Label class="form-label">工作时间</Label>
+    <div class="flex flex-col gap-5 flex-1 overflow-y-auto pr-1">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+          <ClockSolid class="w-4 h-4 text-indigo-500" />
+          <Label class="text-sm font-medium text-gray-600 !mb-0">工作时间</Label>
+        </div>
         <Timepicker
           type="range"
           onselect={handleRangeChange}
           value={selectedTimeRange.time}
           endValue={selectedTimeRange.endTime}
-          divClass="shadow-none timepicker-no-extra-icon"
+          divClass="shadow-none gap-2"
         />
       </div>
 
-      <div class="form-row">
-        <Label for="payday" class="form-label">发薪日</Label>
-        <div class="input-with-unit">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+          <CalendarMonthSolid class="w-4 h-4 text-indigo-500" />
+          <Label for="payday" class="text-sm font-medium text-gray-600 !mb-0">发薪日</Label>
+        </div>
+        <div class="flex items-center gap-2">
           <Input
             id="payday"
             type="number"
@@ -163,15 +173,18 @@
             min="1"
             max="31"
             size="sm"
-            class="flex-1"
+            class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
           />
-          <span class="unit">号</span>
+          <span class="text-sm text-gray-500 font-medium">号</span>
         </div>
       </div>
 
-      <div class="form-row">
-        <Label for="monthly-salary" class="form-label">月薪</Label>
-        <div class="input-with-unit">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+          <DollarOutline class="w-4 h-4 text-indigo-500" />
+          <Label for="monthly-salary" class="text-sm font-medium text-gray-600 !mb-0">月薪</Label>
+        </div>
+        <div class="flex items-center gap-2">
           <Input
             id="monthly-salary"
             type="number"
@@ -180,16 +193,19 @@
             min="0"
             step="100"
             size="sm"
-            class="flex-1"
+            class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
           />
-          <span class="unit">¥</span>
+          <span class="text-sm text-gray-500 font-medium">¥</span>
         </div>
       </div>
 
-      <div class="form-row">
-        <Label for="opacity-slider" class="form-label">窗口透明度</Label>
-        <div class="opacity-control">
-          <span class="opacity-value">{opacityPercent}%</span>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+          <AdjustmentsHorizontalOutline class="w-4 h-4 text-indigo-500" />
+          <Label for="opacity-slider" class="text-sm font-medium text-gray-600 !mb-0">透明度</Label>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm font-semibold text-gray-600 min-w-[42px] text-right">{opacityPercent}%</span>
           <Range
             id="opacity-slider"
             bind:value={opacityPercent}
@@ -197,151 +213,44 @@
             min="0"
             max="100"
             size="sm"
-            class="flex-1"
+            class="w-40 accent-indigo-500"
           />
         </div>
       </div>
     </div>
 
-    <div class="button-group">
-      <Button color="light" onclick={handleCancel} class="flex-1">取消</Button>
-      <Button color="blue" onclick={handleSave} class="flex-1">保存</Button>
+    <div class="flex gap-3 mt-5 pt-5 border-t border-gray-100 justify-end shrink-0">
+      <Button color="alternative" size="sm" onclick={handleCancel} class="!px-5">取消</Button>
+      <Button color="primary" size="sm" onclick={handleSave} class="!px-5 !bg-indigo-500 hover:!bg-indigo-600">保存</Button>
     </div>
   {:else}
-    <div class="error">无法加载配置</div>
+    <div class="text-center py-16 text-sm text-red-500">无法加载配置</div>
   {/if}
 </div>
 
 <style>
-  .settings-content {
-    width: 100vw;
-    height: 100vh;
-    background: white;
-    border-radius: 16px;
-    padding: 20px 20px 20px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
+  /* 标题下方渐变分隔线 - Tailwind 不支持渐变背景到透明 */
+  .title-divider {
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1 0%, #a855f7 50%, transparent 100%);
+    border-radius: 1px;
+    width: 60%;
   }
 
-  .title {
-    margin: 0 0 28px 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: #1a1a1a;
-  }
-
-  .loading {
-    text-align: center;
-    padding: 60px 20px;
-    font-size: 15px;
-    color: #999;
-  }
-
-  .error {
-    text-align: center;
-    padding: 60px 20px;
-    font-size: 15px;
-    color: #f44336;
-  }
-
-  .form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 8px;
-  }
-  
-  .form-container::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .form-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .form-container::-webkit-scrollbar-thumb {
-    background: #ddd;
-    border-radius: 3px;
-  }
-  
-  .form-container::-webkit-scrollbar-thumb:hover {
-    background: #bbb;
-  }
-
-  .form-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .form-row :global(.form-label) {
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    min-width: 100px;
-    flex-shrink: 0;
-    margin-bottom: 0;
-  }
-
-  .input-with-unit {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* 输入框设置固定宽度 */
-  .input-with-unit :global(.flex-1) {
-    flex: none;
-    width: 120px;
-  }
-
-  .unit {
-    color: #999;
-    font-size: 14px;
-    min-width: 24px;
-    font-weight: 500;
-  }
-
-  .opacity-control {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  /* Range 滑块设置固定宽度 */
-  .opacity-control :global(.flex-1) {
-    flex: none;
-    width: 200px;
-  }
-
-  .opacity-value {
-    min-width: 48px;
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-  }
-
-  .button-group {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid #f0f0f0;
-    flex-shrink: 0;
-  }
-
-  /* 自定义 Flowbite 组件样式 */
-  :global(.flex-1) {
-    flex: 1;
-  }
-
-  /* 隐藏 Timepicker range 模式中 Flowbite 添加的额外时钟按钮 */
-  /* 浏览器原生 input[type="time"] 已经有时钟图标了 */
-  .form-row :global(button[aria-label*="time picker"]) {
+  /* 隐藏 Timepicker 多余的时钟按钮 */
+  :global(button[aria-label*="time picker"]) {
     display: none !important;
+  }
+
+  /* Timepicker 输入框样式 */
+  :global(input[type="time"]) {
+    background: rgb(243 244 246) !important;
+    border: 1px solid rgb(229 231 235) !important;
+    border-radius: 0.5rem !important;
+  }
+
+  :global(input[type="time"]:focus) {
+    border-color: rgb(129 140 248) !important;
+    --tw-ring-color: rgb(224 231 255) !important;
   }
 </style>

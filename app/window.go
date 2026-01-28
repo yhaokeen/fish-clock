@@ -7,20 +7,20 @@ import (
 
 // CreateMainWindow 创建主窗口
 func (a *App) CreateMainWindow() {
-	a.Window.NewWithOptions(application.WebviewWindowOptions{
+	a.mainWindow = a.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:          "FishClock",
 		Width:          380,
 		Height:         200,
 		Frameless:      true,
 		DisableResize:  true,
-		BackgroundType: application.BackgroundTypeTranslucent,
+		BackgroundType: application.BackgroundTypeTransparent,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
 		Windows: application.WindowsWindow{
-			BackdropType: application.Acrylic,
+			// BackdropType: application.Acrylic,
 		},
 		BackgroundColour: application.NewRGBA(0, 0, 0, 0),
 		URL:              "/",

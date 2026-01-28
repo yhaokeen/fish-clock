@@ -10,7 +10,7 @@
 
     function calculate() {
         const now = new Date();
-        const dailySalary = monthlySalary / 22;
+        const dailySalary = monthlySalary / 21.75;
         const workStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), workStartHour, 0, 0);
         const workEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), workEndHour, 0, 0);
 

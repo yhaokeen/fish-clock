@@ -10,6 +10,7 @@ import (
 type App struct {
 	*application.App
 	ConfigService *ConfigService
+	mainWindow    *application.WebviewWindow
 	configWindow  *application.WebviewWindow
 }
 

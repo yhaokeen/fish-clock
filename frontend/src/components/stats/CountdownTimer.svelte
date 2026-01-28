@@ -51,7 +51,7 @@
     
     .header {
       font-size: 14px;
-      color: #666;
+      color: #515151;
       margin-bottom: 8px;
     }
     

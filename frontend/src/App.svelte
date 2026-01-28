@@ -1,5 +1,5 @@
 <script lang="ts">
-  import CountdownTimer from "./components/CountdownTimer.svelte";
+  import CountdownTimer from "./components/stats/CountdownTimer.svelte";
   import PaydayCountdown from "./components/stats/PaydayCountdown.svelte";
   import WeekendCountdown from "./components/stats/WeekendCountdown.svelte";
   import TodayEarnings from "./components/stats/TodayEarnings.svelte";
@@ -63,7 +63,7 @@
     height: 100vh;
     margin: 0;
     padding: 0;
-    background: transparent;
+    border-radius: 16px;
   }
 
   .card {
@@ -78,6 +78,9 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    /* 毛玻璃模糊效果 */
+    /* backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px); */
   }
 
   .loading {

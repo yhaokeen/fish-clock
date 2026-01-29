@@ -10,7 +10,7 @@ func (a *App) CreateMainWindow() {
 	a.mainWindow = a.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:          "FishClock",
 		Width:          380,
-		Height:         200,
+		Height:         380,
 		Frameless:      true,
 		DisableResize:  true,
 		BackgroundType: application.BackgroundTypeTransparent,

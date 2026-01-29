@@ -1,16 +1,12 @@
 <script lang="ts">
-  import CountdownTimer from "./components/stats/CountdownTimer.svelte";
-  import PaydayCountdown from "./components/stats/PaydayCountdown.svelte";
-  import WeekendCountdown from "./components/stats/WeekendCountdown.svelte";
-  import TodayEarnings from "./components/stats/TodayEarnings.svelte";
-  import FestivalCountdown from "./components/stats/FestivalCountdown.svelte";
+  import WorkCountdown from "./components/WorkCountdown.svelte";
+  import PomodoroTimer from "./components/PomodoroTimer.svelte";
   import { configStore } from "./stores/config";
 
+  // 当前视图：'pomodoro' | 'work'，先写死显示番茄钟
+  const currentView = 'pomodoro';
+
   // Svelte 5: 使用 $derived 派生值
-  let workStartHour = $derived($configStore?.workStartHour ?? 9);
-  let workEndHour = $derived($configStore?.workEndHour ?? 18);
-  let payday = $derived($configStore?.payday ?? 25);
-  let monthlySalary = $derived($configStore?.monthlySalary ?? 15000);
   let opacity = $derived($configStore?.opacity ?? 0.6);
 
   // Svelte 5: 使用 $effect 替代 onMount
@@ -31,28 +27,10 @@
     class="card" 
     style="--wails-draggable:drag; background: rgba(255, 255, 255, {opacity});"
   >
-    {#if $configStore}
-      {#key $configStore}
-        <div class="content">
-          <CountdownTimer 
-            offWorkHour={workEndHour}
-            offWorkMinute={0} 
-            title="下班还有" 
-          />
-          <div class="stats">
-            <PaydayCountdown {payday} />
-            <WeekendCountdown />
-            <FestivalCountdown />
-            <TodayEarnings 
-              {monthlySalary}
-              {workStartHour}
-              {workEndHour}
-            />
-          </div>
-        </div>
-      {/key}
+    {#if currentView === 'pomodoro'}
+      <PomodoroTimer />
     {:else}
-      <div class="loading">加载中...</div>
+      <WorkCountdown />
     {/if}
   </div>
 </main>
@@ -83,17 +61,4 @@
     -webkit-backdrop-filter: blur(20px); */
   }
 
-  .loading {
-    font-size: 14px;
-    color: #999;
-  }
-
-  .stats {
-    display: flex;
-    flex-direction: row;
-    gap: 15px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-  }
 </style>

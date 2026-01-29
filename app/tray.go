@@ -6,10 +6,11 @@ import "github.com/wailsapp/wails/v3/pkg/application"
 func (a *App) SetupSystemTray() {
 	tray := a.SystemTray.New()
 	trayMenu := a.NewMenu()
+
+	// 置顶选项
 	onTop := trayMenu.AddCheckbox("置顶", false)
 	onTop.OnClick(func(ctx *application.Context) {
 		if a.mainWindow != nil {
-			// 切换置顶状态
 			isChecked := onTop.Checked()
 			a.mainWindow.SetAlwaysOnTop(isChecked)
 		}

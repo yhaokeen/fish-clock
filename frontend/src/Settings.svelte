@@ -6,8 +6,8 @@
   import { ClockSolid, CalendarMonthSolid, DollarOutline, AdjustmentsHorizontalOutline } from 'flowbite-svelte-icons';
 
   // Svelte 5: 使用 $state 声明响应式状态
-  let originalConfig = $state<Config | null>(null);
-  let isReady = $state(false);
+  let originalConfig: Config | null = null;  // 不用 $state，避免被 effect 重复赋值
+  let isInitialized = false;  // 标记是否已初始化
   
   // 使用本地变量来绑定表单
   let workStartHour = $state(9);
@@ -40,13 +40,10 @@
       // 更新小时数并更新配置
       workStartHour = parseHour(data.time);
       workEndHour = parseHour(data.endTime);
-      if (isReady) {
-        updateConfig();
-      }
+      updateConfig();
     }
   }
 
-  // Svelte 5: 使用 $effect 替代 onMount
   $effect(() => {
     (async () => {
       // 如果配置还没加载，先加载
@@ -54,8 +51,9 @@
         await configStore.load();
       }
       
-      // 保存当前配置的副本并初始化本地变量
-      if ($configStore) {
+      // 只在首次加载时保存原始配置和初始化本地变量
+      if ($configStore && !isInitialized) {
+        isInitialized = true;
         originalConfig = JSON.parse(JSON.stringify($configStore));
         workStartHour = $configStore.workStartHour;
         workEndHour = $configStore.workEndHour;
@@ -65,13 +63,11 @@
         };
         payday = $configStore.payday;
         monthlySalary = $configStore.monthlySalary;
-        opacityPercent = Math.round($configStore.opacity * 100);
+        opacityPercent = Math.round((1 - $configStore.opacity) * 100);
       }
       
-      isReady = true;
     })();
   });
-
 
   function updateConfig() {
     const newConfig = {
@@ -79,7 +75,7 @@
       workEndHour,
       payday,
       monthlySalary,
-      opacity: opacityPercent / 100
+      opacity: 1 - opacityPercent / 100
     };
     
     console.log('更新配置:', newConfig);
@@ -120,16 +116,8 @@
     // 恢复原始配置
     if (originalConfig) {
       configStore.set(originalConfig);
-      // 同时恢复本地变量
-      workStartHour = originalConfig.workStartHour;
-      workEndHour = originalConfig.workEndHour;
-      selectedTimeRange = {
-        time: formatTime(originalConfig.workStartHour),
-        endTime: formatTime(originalConfig.workEndHour)
-      };
-      payday = originalConfig.payday;
-      monthlySalary = originalConfig.monthlySalary;
-      opacityPercent = Math.round(originalConfig.opacity * 100);
+      // 广播原始配置到主窗口，让主窗口也恢复
+      configStore.broadcast(originalConfig);
     }
     WindowService.CloseCurrentWindow();
   }
@@ -141,91 +129,85 @@
     <div class="title-divider"></div>
   </div>
 
-  {#if !isReady}
-    <div class="text-center py-16 text-sm text-gray-400">加载中...</div>
-  {:else if $configStore}
-    <div class="flex flex-col gap-5 flex-1 overflow-y-auto pr-1">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
-          <ClockSolid class="w-4 h-4 text-indigo-500" />
-          <Label class="text-sm font-medium text-gray-600 !mb-0">工作时间</Label>
-        </div>
-        <Timepicker
-          type="range"
-          onselect={handleRangeChange}
-          value={selectedTimeRange.time}
-          endValue={selectedTimeRange.endTime}
-          divClass="shadow-none gap-2"
+  <div class="flex flex-col gap-5 flex-1 overflow-y-auto pr-1" style="--wails-draggable: no-drag;">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+        <ClockSolid class="w-4 h-4 text-indigo-500" />
+        <Label class="text-sm font-medium text-gray-600 !mb-0">工作时间</Label>
+      </div>
+      <Timepicker
+        type="range"
+        onselect={handleRangeChange}
+        value={selectedTimeRange.time}
+        endValue={selectedTimeRange.endTime}
+        divClass="shadow-none gap-2"
+      />
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+        <CalendarMonthSolid class="w-4 h-4 text-indigo-500" />
+        <Label for="payday" class="text-sm font-medium text-gray-600 !mb-0">发薪日</Label>
+      </div>
+      <div class="flex items-center gap-2">
+        <Input
+          id="payday"
+          type="number"
+          bind:value={payday}
+          oninput={handleConfigChange}
+          min="1"
+          max="31"
+          size="sm"
+          class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
+        />
+        <span class="text-sm text-gray-500 font-medium">号</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+        <DollarOutline class="w-4 h-4 text-indigo-500" />
+        <Label for="monthly-salary" class="text-sm font-medium text-gray-600 !mb-0">月薪</Label>
+      </div>
+      <div class="flex items-center gap-2">
+        <Input
+          id="monthly-salary"
+          type="number"
+          bind:value={monthlySalary}
+          oninput={handleConfigChange}
+          min="0"
+          step="100"
+          size="sm"
+          class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
+        />
+        <span class="text-sm text-gray-500 font-medium">¥</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 min-w-[100px] shrink-0">
+        <AdjustmentsHorizontalOutline class="w-4 h-4 text-indigo-500" />
+        <Label for="opacity-slider" class="text-sm font-medium text-gray-600 !mb-0">透明度</Label>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-semibold text-gray-600 min-w-[42px] text-right">{opacityPercent}%</span>
+        <Range
+          id="opacity-slider"
+          bind:value={opacityPercent}
+          oninput={handleOpacityChange}
+          min="0"
+          max="100"
+          size="sm"
+          class="w-40 accent-indigo-500"
         />
       </div>
-
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
-          <CalendarMonthSolid class="w-4 h-4 text-indigo-500" />
-          <Label for="payday" class="text-sm font-medium text-gray-600 !mb-0">发薪日</Label>
-        </div>
-        <div class="flex items-center gap-2">
-          <Input
-            id="payday"
-            type="number"
-            bind:value={payday}
-            oninput={handleConfigChange}
-            min="1"
-            max="31"
-            size="sm"
-            class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
-          />
-          <span class="text-sm text-gray-500 font-medium">号</span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
-          <DollarOutline class="w-4 h-4 text-indigo-500" />
-          <Label for="monthly-salary" class="text-sm font-medium text-gray-600 !mb-0">月薪</Label>
-        </div>
-        <div class="flex items-center gap-2">
-          <Input
-            id="monthly-salary"
-            type="number"
-            bind:value={monthlySalary}
-            oninput={handleConfigChange}
-            min="0"
-            step="100"
-            size="sm"
-            class="w-24 !bg-gray-100 !border-gray-200 !rounded-lg focus:!border-indigo-400 focus:!ring-indigo-100"
-          />
-          <span class="text-sm text-gray-500 font-medium">¥</span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 min-w-[100px] shrink-0">
-          <AdjustmentsHorizontalOutline class="w-4 h-4 text-indigo-500" />
-          <Label for="opacity-slider" class="text-sm font-medium text-gray-600 !mb-0">透明度</Label>
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm font-semibold text-gray-600 min-w-[42px] text-right">{opacityPercent}%</span>
-          <Range
-            id="opacity-slider"
-            bind:value={opacityPercent}
-            oninput={handleOpacityChange}
-            min="0"
-            max="100"
-            size="sm"
-            class="w-40 accent-indigo-500"
-          />
-        </div>
-      </div>
     </div>
+  </div>
 
-    <div class="flex gap-3 mt-5 pt-5 border-t border-gray-100 justify-end shrink-0">
-      <Button color="alternative" size="sm" onclick={handleCancel} class="!px-5">取消</Button>
-      <Button color="primary" size="sm" onclick={handleSave} class="!px-5 !bg-indigo-500 hover:!bg-indigo-600">保存</Button>
-    </div>
-  {:else}
-    <div class="text-center py-16 text-sm text-red-500">无法加载配置</div>
-  {/if}
+  <div class="flex gap-3 mt-5 pt-5 border-t border-gray-100 justify-end shrink-0" style="--wails-draggable: no-drag;">
+    <Button color="alternative" size="sm" onclick={handleCancel} class="!px-5">取消</Button>
+    <Button color="primary" size="sm" onclick={handleSave} class="!px-5 !bg-indigo-500 hover:!bg-indigo-600">保存</Button>
+  </div>
 </div>
 
 <style>

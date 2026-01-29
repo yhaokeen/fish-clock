@@ -45,20 +45,20 @@
 </div>
 
 <style>
-    .countdown-container {
-      text-align: center;
-    }
-    
-    .header {
-      font-size: 14px;
-      color: #515151;
-      margin-bottom: 8px;
-    }
-    
-    .countdown {
-      font-size: 48px;
-      font-weight: bold;
-      color: #333;
-      font-family: "Consolas", monospace;
-    }
-  </style>
+  .countdown-container {
+    text-align: center;
+  }
+  
+  .header {
+    font-size: 14px;
+    color: #434343;
+    margin-bottom: 8px;
+  }
+  
+  .countdown {
+    font-size: 48px;
+    font-weight: bold;
+    color: #333;
+    font-family: "Consolas", monospace;
+  }
+</style>

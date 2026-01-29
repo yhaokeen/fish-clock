@@ -16,7 +16,7 @@
     }
     .label {
         font-size: 12px;
-        color: #888;
+        color: #434343;
         margin-bottom: 4px;
     }
     .value {

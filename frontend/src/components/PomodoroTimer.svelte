@@ -15,7 +15,7 @@
   
   // 计算指针角度 (0-360度)，跟随秒针
   // +90 是为了补偿 SVG 整体旋转的 -90deg
-  let pointerAngle = $derived(((60 - (remainingTime % 60)) / 60) * 360 + 90);
+  let pointerAngle = $derived(((60 - (remainingTime % 60)) / 60) * 360);
   
   // 圆周长（用于进度条）
   const OUTER_CIRCUMFERENCE = 2 * Math.PI * 85; // 倒计时圈 r=85
@@ -102,14 +102,17 @@
       />
       
       <!-- 倒计时进度条（蓝紫色，从顶部顺时针） -->
-      <circle 
-        cx="100" cy="100" r="85" 
+      <!-- 使用 path 代替 circle，可以自定义起始点 -->
+      <!-- M 100,15 表示从12点钟方向开始（圆心100,100，半径85，所以顶部是100,15） -->
+      <!-- A 85,85 0 1,1 99.99,15 表示画一个几乎完整的圆弧 -->
+      <path 
+        d="M 185,100 A 85,85 0 0,1 100,185"
         fill="none" 
         stroke="url(#countdownGradient)" 
         stroke-width="12"
         stroke-linecap="round"
         stroke-dasharray={OUTER_CIRCUMFERENCE}
-        stroke-dashoffset={OUTER_CIRCUMFERENCE * countdownProgress}
+        stroke-dashoffset={OUTER_CIRCUMFERENCE * (1 - countdownProgress)}
         class="progress-ring countdown"
       />
 
@@ -197,7 +200,7 @@
   .clock {
     width: 100%;
     height: 100%;
-    transform: rotate(-90deg); /* 从顶部开始 */
+    /* transform: rotate(-90deg); */
   }
 
   .progress-ring {

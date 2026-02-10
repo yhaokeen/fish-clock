@@ -7,54 +7,75 @@
   let isRunning = $state(false);
   let timer: number | null = null;
 
+  // 实时时钟时间
+  let currentTime = $state(new Date());
+
   // 计算进度 (0-1)，倒计时进度
   let countdownProgress = $derived(remainingTime / TOTAL_TIME);
   
   // 秒表进度 (0-1)，每分钟循环一次
   let secondsProgress = $derived((60 - (remainingTime % 60)) / 60);
   
-  // 计算指针角度 (0-360度)，跟随秒针
-  // +90 是为了补偿 SVG 整体旋转的 -90deg
-  let pointerAngle = $derived(((60 - (remainingTime % 60)) / 60) * 360);
-  
   // 圆周长（用于进度条）
   const OUTER_CIRCUMFERENCE = 2 * Math.PI * 98; // 倒计时圈 r=85
-  // const INNER_CIRCUMFERENCE = 2 * Math.PI * 72; // 秒表圈 r=72
 
   // 格式化时间显示
   let displayMinutes = $derived(Math.floor(remainingTime / 60));
   let displaySeconds = $derived(remainingTime % 60);
 
-  // 开始/暂停
-  function toggleTimer() {
-    if (isRunning) {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-    } else {
-      timer = window.setInterval(() => {
-        if (remainingTime > 0) {
-          remainingTime--;
-        } else {
-          clearInterval(timer!);
-          timer = null;
-          isRunning = false;
-        }
-      }, 1000);
-    }
-    isRunning = !isRunning;
-  }
+  // 计算时针角度
+  // 时针：每小时30度，每分钟0.5度，每12秒0.1度
+  let hourAngle = $derived.by(() => {
+    const hours = currentTime.getHours() % 12; // 12小时制
+    const minutes = currentTime.getMinutes();
+    const seconds = currentTime.getSeconds();
+    return hours * 30 + minutes * 0.5 + seconds * 0.1 / 12;
+  });
 
-  // 重置
-  function resetTimer() {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-    isRunning = false;
-    remainingTime = TOTAL_TIME;
-  }
+  // 计算分针角度
+  // 分针：每分钟6度，每秒0.1度
+  let minuteAngle = $derived.by(() => {
+    const minutes = currentTime.getMinutes();
+    const seconds = currentTime.getSeconds();
+    return minutes * 6 + seconds * 0.1;
+  });
+
+  // 计算秒针角度
+  // 秒针：每秒6度
+  let secondAngle = $derived.by(() => {
+    const seconds = currentTime.getSeconds();
+    return seconds * 6;
+  });
+
+  // 根据分针角度计算进度条起点坐标
+  let startX = $derived.by(() => {
+    return 125 + 98 * Math.cos(minuteAngle * Math.PI / 180);
+  });
+  let startY = $derived.by(() => {
+    return 125 + 98 * Math.sin(minuteAngle * Math.PI / 180);
+  });
+
+  // 实时更新时间
+  let clockTimer: number | null = null;
+  
+  $effect(() => {
+    // 立即更新一次
+    currentTime = new Date();
+    
+    // 每秒更新一次
+    clockTimer = window.setInterval(() => {
+      currentTime = new Date();
+    }, 1000);
+
+    // 清理函数
+    return () => {
+      if (clockTimer) {
+        clearInterval(clockTimer);
+        clockTimer = null;
+      }
+    };
+  });
+
 </script>
 
 <div class="pomodoro-container">
@@ -89,6 +110,9 @@
         <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
           <feDropShadow dx="1" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.6)" />
           <feDropShadow dx="-0.5" dy="-0.5" stdDeviation="0.5" flood-color="rgba(0,0,0,0.3)" />
+        </filter>
+        <filter id="second" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="1" dy="1" stdDeviation="3" flood-color="rgba(0,0,0,0.3)" />
         </filter>
       </defs>
 
@@ -147,7 +171,8 @@
       <!-- 倒计时进度条（蓝紫色，从顶部顺时针） -->
       <!-- 使用 path 代替 circle，可以自定义起始点 -->
       <!-- M 100,15 表示从12点钟方向开始（圆心100,100，半径85，所以顶部是100,15） -->
-      <!-- A 85,85 0 1,1 99.99,15 表示画一个几乎完整的圆弧 -->
+      <!-- M 125,27 A 98,98 0 0,1 223,125 表示从(125,27)点开始画一个98px的正圆弧到(223,125)
+       0：x轴旋转角度 0：表示小弧线 ，1：表示顺时针方向-->
       <path 
         d="M 125,27 A 98,98 0 0,1 223,125"
         fill="none" 
@@ -157,8 +182,18 @@
         stroke-dashoffset={OUTER_CIRCUMFERENCE * (1 - countdownProgress)}
         class="progress-ring countdown"
       />
+      <!-- 秒针 -->
+      <rect 
+        x="124" y="153" 
+        width="2" height="27"
+        rx="2" ry="2"
+        stroke="none"
+        fill="url(#countdownGradient)"
+        filter="url(#second)"
+        style="transform: rotate(0deg); transform-origin: 125px 180px;"
+      />
       
-      <!-- 时针 (指向10点方向) 时针r=85-->
+      <!-- 时针 -->
       <rect 
         x="124" y="40" 
         width="2" height="95"
@@ -167,70 +202,40 @@
         stroke-width="0.1"
         fill="#F8F8F8"
         filter="url(#dropShadow)"
-        style="transform: rotate(330deg); transform-origin: 125px 125px;"
+        style="transform: rotate({hourAngle}deg); transform-origin: 125px 125px; will-change: transform;"
+        class="hour-hand"
       />
       
-      <!-- 分针（整体） 分针r=111-->
-      <g filter="url(#dropShadow)" style="transform: rotate(30deg); transform-origin: 125px 125px;">
+      <!-- 分针（整体） -->
+      <g 
+        filter="url(#dropShadow)"
+        style="transform: rotate({minuteAngle}deg); transform-origin: 125px 125px; will-change: transform;"
+        class="minute-hand"
+      >
         <!-- 分针主体 -->
         <rect 
           x="124" y="14" 
           width="2" height="120"
           rx="2" ry="2"
-          fill="#F8F8F8" 
+          fill="#F8F8F8"
         />
         <!-- 分针末端深色部分 -->
         <rect 
           x="124" y="14" 
           width="2" height="25"
           rx="2" ry="2"
-          fill="#222222"
+          fill="#111111"
         />
       </g>
 
+      
       <!-- 中心圆点 -->
-      <!-- <circle cx="125" cy="125" r="5" fill="none" stroke="#2c3e50" stroke-width="2" /> -->
-      <circle cx="125" cy="125" r="4" fill="#E2E8F0" />
-      <circle cx="125" cy="125" r="2" fill="url(#metal3D)" />
-      
-      <!-- 秒表轨道（浅灰色背景） -->
-      <!-- <circle 
-        cx="100" cy="100" r="65" 
-        fill="none" 
-        stroke="#f0f0f0" 
-        stroke-width="8"
-      /> -->
-      
-      <!-- 秒表进度条（青绿色） -->
-      <!-- <circle 
-        cx="100" cy="100" r="65" 
-        fill="none" 
-        stroke="url(#secondsGradient)" 
-        stroke-width="8"
-        stroke-linecap="round"
-        stroke-dasharray={INNER_CIRCUMFERENCE}
-        stroke-dashoffset={INNER_CIRCUMFERENCE * (1 - secondsProgress)}
-        class="progress-ring seconds"
-      /> -->
+      <circle cx="125" cy="125" r="8" fill="#FFFFFF" filter="url(#centerShadow)" />
+      <!-- <circle cx="125" cy="125" r="2" fill="url(#metal3D)" /> -->
+      <circle cx="125" cy="180" r="5" fill="#FFFFFF" filter="url(#centerShadow)" />
     </svg>
   </div>
 
-  <!-- 时间显示 -->
-  <div class="time-display">
-    <span class="minutes">{String(displayMinutes).padStart(2, '0')}</span>
-    <span class="separator">:</span>
-    <span class="seconds">{String(displaySeconds).padStart(2, '0')}</span>
-  </div>
-
-  <!-- 控制按钮 -->
-  <div class="controls" style="--wails-draggable: no-drag;">
-    <button class="btn primary" onclick={toggleTimer}>
-      {isRunning ? '暂停' : '开始'}
-    </button>
-    <button class="btn secondary" onclick={resetTimer}>
-      重置
-    </button>
-  </div>
 </div>
 
 <style>
@@ -259,6 +264,18 @@
 
   .pointer {
     transition: transform 0.3s ease;
+  }
+
+  .minute-hand {
+    /* 去掉 transition 避免与频繁更新冲突 */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .hour-hand {
+    /* 去掉 transition 避免与频繁更新冲突 */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
   }
 
   .time-display {
